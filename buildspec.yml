@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_REGISTRY_USERNAME: /testpyapp/docker-creds/docker_registry_url
+    DOCKER_REGISTRY_PASSWORD: /testpyapp/docker-creds/password
+    DOCKER_REGISTRY_URL: /testpyapp/docker-creds/docker_registry_url
+  
+phases:
+  install:
+    runtime-versions:
+      python : 3.11
+      
+  pre_build:
+    commands:
+      - "pip install -r requirements.txt"
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      
+  build:
+    commands:
+      - echo "Building Docker Image"
+      - docker build -t "second-flaskpyapp:latest" .
+      - docker tag "second-flaskpyapp:latest" "$DOCKER_REGISTRY_USERNAME/second-flaskpyapp:latest"
+      - docker push "$DOCKER_REGISTRY_USERNAME/second-flaskpyapp:latest"
+    
+  post_build:
+    commands:
+      - echo "Build is done Sagar Wadhwa !!"
